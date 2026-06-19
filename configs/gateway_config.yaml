@@ -1,0 +1,32 @@
+# Routing settings
+routing:
+  simple_model: "claude-haiku-4-5-20251001"
+  complex_model: "claude-sonnet-4-6"
+  complexity_threshold: 0.5      # 0-1 score; above this routes to complex model
+
+# Caching settings
+cache:
+  enabled: true
+  similarity_threshold: 0.92     # cosine similarity to count as a cache hit
+  ttl_seconds: 3600               # cache entry lifetime
+  embedding_model: "all-MiniLM-L6-v2"
+
+# Rate limiting
+rate_limit:
+  requests_per_minute: 60
+  burst_size: 10                  # token bucket capacity
+  algorithm: "token_bucket"
+
+# Retry settings
+retry:
+  max_retries: 3
+  base_delay_seconds: 1.0
+  max_delay_seconds: 30.0
+  exponential_base: 2
+
+# Cost tracking (USD per 1M tokens, approximate)
+cost:
+  simple_model_input_cost:  0.25
+  simple_model_output_cost: 1.25
+  complex_model_input_cost: 3.00
+  complex_model_output_cost: 15.00
