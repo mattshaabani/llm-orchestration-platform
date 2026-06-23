@@ -167,13 +167,42 @@ class LLMGateway:
     def _call_llm(self, query: str, system: str, model: str):
         """
         Internal LLM call — wrapped by retry_handler.
-        Uses the Anthropic client directly with the routed model.
+        Uses HuggingFace Inference API with the routed model.
         """
-        import anthropic
+        import requests
         from src.utils.config import settings as global_settings
-        import os
 
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        headers = {"Authorization": f"Bearer {global_settings.env.hf_token}"}
+        api_url = f"https://api-inference.huggingface.co/models/{model}"
+
+        prompt = f"<s>[INST] <<SYS>>\n{system}\n<</SYS>>\n\n{query} [/INST]"
+
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "temperature": 0.3,
+                "max_new_tokens": 512,
+                "return_full_text": False,
+            }
+        }
+
+        response = requests.post(api_url, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        data = response.json()
+
+        if isinstance(data, list):
+            content = data[0].get("generated_text", "")
+        else:
+            content = data.get("generated_text", "")
+
+        class SimpleResponse:
+            pass
+
+        result = SimpleResponse()
+        result.content = content
+        result.prompt_tokens = len(prompt.split())
+        result.output_tokens = len(content.split())
+        return result
 
         response = client.messages.create(
             model=model,
