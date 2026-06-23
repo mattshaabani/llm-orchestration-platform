@@ -1,8 +1,8 @@
 # Routing settings
 routing:
-  simple_model: "claude-haiku-4-5-20251001"
-  complex_model: "claude-sonnet-4-6"
-  complexity_threshold: 0.5      # 0-1 score; above this routes to complex model
+  simple_model: "mistralai/Mistral-7B-Instruct-v0.3"
+  complex_model: "mistralai/Mixtral-8x7B-Instruct-v0.1"
+  complexity_threshold: 0.5
 
 # Caching settings
 cache:
@@ -26,7 +26,7 @@ retry:
 
 # Cost tracking (USD per 1M tokens, approximate)
 cost:
-  simple_model_input_cost:  0.25
-  simple_model_output_cost: 1.25
-  complex_model_input_cost: 3.00
-  complex_model_output_cost: 15.00
+  simple_model_input_cost:  0.0
+  simple_model_output_cost: 0.0
+  complex_model_input_cost: 0.0
+  complex_model_output_cost: 0.0

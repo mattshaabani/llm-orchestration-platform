@@ -80,6 +80,9 @@ class EnvSettings(BaseSettings):
     postgres_password:  str = Field(default="")
     app_env:            str = Field(default="development")
     log_level:           str = Field(default="INFO")
+    hf_token: str = Field(default="")
+    hf_model_simple:  str = Field(default="mistralai/Mistral-7B-Instruct-v0.3")
+    hf_model_complex: str = Field(default="mistralai/Mixtral-8x7B-Instruct-v0.1")
 
 
 class Settings:
