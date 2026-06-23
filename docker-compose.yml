@@ -1,0 +1,77 @@
+version: "3.9"
+
+networks:
+  gateway-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+services:
+  # 1. LLM Gateway API
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: llm-gateway-api
+    ports:
+      - "8081:8081"
+    environment:
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+      - HF_TOKEN=${HF_TOKEN}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - redis
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  # 2. Redis — cache + rate limiting  
+  redis:
+    image: redis:7-alpine
+    container_name: llm-gateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  
+  # 3. Prometheus — metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: llm-gateway-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - gateway-network
+    restart: unless-stopped
+
+  # 4. Grafana — dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: llm-gateway-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - gateway-network
+    restart: unless-stopped
